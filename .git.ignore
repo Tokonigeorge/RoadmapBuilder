@@ -2,9 +2,11 @@ node_modules/
 package-lock.json
 .yarn/
 
+
 .env
 .venv
 build/
 public/
 .lock
 .pyc
+.cursorrules

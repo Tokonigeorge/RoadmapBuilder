@@ -1,25 +1,24 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+// import { useState, useEffect } from 'react';
+// import axios from 'axios';
+import MainDisplay from './components/mainDisplay';
 
 function App() {
-  const [message, setMessage] = useState<string>('');
+  // const [message, setMessage] = useState<string>('');
 
-  useEffect(() => {
-    axios
-      .get('/api/')
-      .then((response) => setMessage(response.data.message))
-      .catch((error) => console.error('Error fetching data', error));
-  }, []);
+  // useEffect(() => {
+  //   axios
+  //     .get('/api/')
+  //     .then((response) => setMessage(response.data.message))
+  //     .catch((error) => console.error('Error fetching data', error));
+  // }, []);
 
   return (
-    <>
-      <div>
-        <p>FastAPI says: {message}</p>
+    <main className='bg-color-secondary w-full h-screen p-10'>
+      <div className='flex flex-col items-center justify-center'>
+        <p className='font-serif text-outline text-2xl'>Roadmap Builder</p>
       </div>
-      <p className='read-the-docs'>
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+      <MainDisplay />
+    </main>
   );
 }
 
