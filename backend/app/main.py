@@ -1,8 +1,12 @@
-from fastapi import FastAPI, APIRouter
+from .road_map_generator import generate_roadmap
+from .models import RoadmapFormData
+
+from fastapi import FastAPI, APIRouter, HTTPException
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional
+
+
+
 
 # Create the FastAPI app with configuration
 app = FastAPI(
@@ -25,15 +29,7 @@ app.add_middleware(
 # Create a router for API endpoints with versioning
 api_router = APIRouter(prefix="/api/v1")
 
-class RoadmapFormData(BaseModel):
-    learningTopic: str
-    timeCommitment: str
-    frequency: str
-    timeFrame: str
-    # deadline: str
-    # visual: Optional[bool] = False
-    # auditory: Optional[bool] = False
-    # kinesthetic: Optional[bool] = False
+
 
 # Define the root endpoint
 @api_router.get("/", summary="Root endpoint", response_description="Welcome message")
@@ -46,8 +42,11 @@ async def test():
 
 @api_router.post("/roadmap", summary="Create a new roadmap", response_description="Roadmap created successfully")
 async def create_roadmap(data: RoadmapFormData):
-    print("received data: ", data.dict())
-    return {"status": "success", "message": "Roadmap created successfully", "data": data}
+    try:
+        roadmap = generate_roadmap(data)
+        return {"status": "success", "message": "Roadmap created successfully", "roadmap": roadmap}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
 
 # Include the router in the app
 app.include_router(api_router)

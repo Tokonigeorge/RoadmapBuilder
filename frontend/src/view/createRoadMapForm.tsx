@@ -6,10 +6,14 @@ import { useState } from 'react';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Roadmapdata } from '../interfaces/form';
+import { createRoadmap } from '../state/reducer';
+import { useDispatch } from 'react-redux';
 
 const RoadMapForm = () => {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const dispatch = useDispatch();
 
   const {
     register,
@@ -94,8 +98,9 @@ const RoadMapForm = () => {
     try {
       setIsSubmitting(true);
       const response = await axios.post('/api/roadmap', data);
+      const parsedResponse = JSON.parse(response.data.roadmap);
 
-      console.log('Submission successful:', response.data);
+      dispatch(createRoadmap(parsedResponse as Roadmapdata));
     } catch (error) {
       console.error('Submission failed:', error);
       toast.error('Failed to create roadmap. Please try again.');
