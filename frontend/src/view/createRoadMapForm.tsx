@@ -4,6 +4,8 @@ import AnimatedInputWrapper from './components/animatedInputWrapper';
 import { useState } from 'react';
 // import { RoadMapFormData } from '../interfaces/form';
 import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const RoadMapForm = () => {
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -14,7 +16,7 @@ const RoadMapForm = () => {
     handleSubmit,
     formState: { errors },
     trigger,
-    // getValues,
+    getValues,
   } = useForm();
 
   const formSteps = [
@@ -40,6 +42,8 @@ const RoadMapForm = () => {
         type='text'
         requiredText='This field is required'
         inputType='text'
+        titleField='learningTopic'
+        values={getValues()}
       />
     </AnimatedInputWrapper>,
     <AnimatedInputWrapper key='step3'>
@@ -47,12 +51,13 @@ const RoadMapForm = () => {
         register={register}
         errors={errors}
         htmlFor='frequency'
-        label='Frequency'
+        label=''
         placeholder='Daily, Weekly, Monthly'
         type='select'
         requiredText='This field is required'
         inputType='select'
-        options={['Daily', 'Weekly', 'Monthly']}
+        options={['Daily', 'Every Other Day', 'Twice a Week', 'Weekends']}
+        title='How much time can you dedicate to learning?'
       />
     </AnimatedInputWrapper>,
     <AnimatedInputWrapper key='step4'>
@@ -60,11 +65,12 @@ const RoadMapForm = () => {
         register={register}
         errors={errors}
         htmlFor='timeFrame'
-        label='Time Frame'
+        label=''
         placeholder='I want to learn this in 2 weeks'
         type='text'
         requiredText='This field is required'
         inputType='text'
+        title='How long do you want to learn this?'
       />
     </AnimatedInputWrapper>,
   ];
@@ -87,27 +93,24 @@ const RoadMapForm = () => {
   const onSubmit = async (data: FieldValues) => {
     try {
       setIsSubmitting(true);
-      // const response = await axios.post('/api/roadmap', data);
-      const response = await axios.get('http://localhost:8000/api/v1/test');
+      const response = await axios.post('/api/roadmap', data);
 
       console.log('Submission successful:', response.data);
-      // Handle success (e.g., redirect, show success message)
     } catch (error) {
       console.error('Submission failed:', error);
-      // Handle error with more detail
-      if (axios.isAxiosError(error)) {
-        console.error('Response status:', error.response?.status);
-        console.error('Response data:', error.response?.data);
-      }
-      // Handle error
+      toast.error('Failed to create roadmap. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className='mt-4 space-y-4'>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className='mt-4 space-y-4 font-serif justify-center flex flex-col mx-auto min-w-full md:min-w-3/4'
+    >
       {formSteps[currentStep]}
+      <ToastContainer />
       {/* Learning Style (checkboxes) */}
       {/* <div className='flex flex-col'>
         <span className='mb-1 font-semibold'>Learning Style</span>
@@ -152,7 +155,7 @@ const RoadMapForm = () => {
           <button
             type='button'
             onClick={handleNextStep}
-            className='ml-auto px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors cursor-pointer'
+            className='ml-auto px-6 py-2 bg-primary text-black rounded hover:bg-primary/80 transition-colors cursor-pointer'
           >
             Next
           </button>
@@ -160,7 +163,7 @@ const RoadMapForm = () => {
           <button
             type='submit'
             disabled={isSubmitting}
-            className='ml-auto px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center cursor-pointer '
+            className='ml-auto px-6 py-2 bg-primary text-black  rounded hover:bg-primary/80 transition-colors flex items-center cursor-pointer '
           >
             {isSubmitting ? (
               <>
@@ -192,12 +195,6 @@ const RoadMapForm = () => {
           </button>
         )}
       </div>
-      {/* <button
-        type='submit'
-        className='min-w-70 bg-blue-600 text-white py-4 rounded hover:bg-blue-700 transition-colors'
-      >
-        Create Roadmap
-      </button> */}
     </form>
   );
 };

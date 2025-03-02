@@ -7,6 +7,19 @@
   --font-sans: 'Poppins', sans-serif;
   --font-serif: 'Itim', serif;
 }
+/* .custom-select {
+
+  padding-right: 2rem;
+
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1rem;
+} */
 
 /* @media (prefers-color-scheme: light) {
   :root {
