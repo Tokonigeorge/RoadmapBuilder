@@ -1,6 +1,6 @@
 // import { useState, useEffect } from 'react';
 // import axios from 'axios';
-import MainDisplay from './components/mainDisplay';
+import MainDisplay from './view/mainDisplay';
 
 function App() {
   // const [message, setMessage] = useState<string>('');
@@ -13,7 +13,7 @@ function App() {
   // }, []);
 
   return (
-    <main className='bg-color-secondary w-full h-screen p-10'>
+    <main className='bg-orange-100 w-full h-screen p-10'>
       <div className='flex flex-col items-center justify-center'>
         <p className='font-serif text-outline text-2xl'>Roadmap Builder</p>
       </div>
