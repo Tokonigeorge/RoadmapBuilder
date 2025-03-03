@@ -36,7 +36,7 @@ interface Day {
 interface Week {
   week_number: number;
   focus_area: string;
-  days: Record<string, Day>;
+  days: Day[];
 }
 
 export interface Roadmapdata {
