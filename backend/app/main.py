@@ -1,13 +1,16 @@
-from .road_map_generator import generate_roadmap
-from .models import RoadmapFormData
+from app.road_map_generator import generate_roadmap, generate_resources
+from app.models import RoadmapFormData
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from fastapi import FastAPI, APIRouter, HTTPException
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
+from dotenv import load_dotenv
+import os
 
 
-
+load_dotenv()
 # Create the FastAPI app with configuration
 app = FastAPI(
     title="RoadmapBuilder API",
@@ -29,6 +32,15 @@ app.add_middleware(
 # Create a router for API endpoints with versioning
 api_router = APIRouter(prefix="/api/v1")
 
+# MongoDB Configuration
+MONGODB_USERNAME = os.getenv("MONGODB_USERNAME")
+MONGODB_PASSWORD = os.getenv("MONGODB_PASSWORD")
+MONGODB_CLUSTER = os.getenv("MONGODB_CLUSTER", "metadata.oj7wh.mongodb.net")
+MONGO_URI = f"mongodb+srv://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@{MONGODB_CLUSTER}/?retryWrites=true&w=majority&appName=metadata&tls=true"
+DB_NAME = "roadmap_db"
+client = AsyncIOMotorClient(MONGO_URI)
+db = client[DB_NAME]
+topics_collection = db["topics"]
 
 
 # Define the root endpoint
@@ -43,10 +55,34 @@ async def test():
 @api_router.post("/roadmap", summary="Create a new roadmap", response_description="Roadmap created successfully")
 async def create_roadmap(data: RoadmapFormData):
     try:
-        roadmap = generate_roadmap(data)
-        return {"status": "success", "message": "Roadmap created successfully", "roadmap": roadmap}
+        if not data.timeFrame:
+            response_type = "resources"
+            roadmap = generate_resources(data)
+            
+        else:
+            response_type = "roadmap"
+            roadmap = generate_roadmap(data)
+
+        return {"status": "success", "message": "Roadmap created successfully", "roadmap": roadmap, "response_type": response_type}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
+    
+
+@api_router.post("/topic", summary="Add a new topic", response_description="Topic added successfully")
+async def add_topic(topic_data: RoadmapFormData):
+    topic = topic_data.learningTopic.strip()
+    if not topics_collection.find_one({"name": topic}):
+        topics_collection.insert_one({"name": topic})
+    return {"message": "Topic added"}
+
+@api_router.get("/topics", summary="Get all topics", response_description="All topics")
+async def get_topics():
+    try:
+        topics_list =  topics_collection.find({}, {"_id": 0, "name": 1})
+        topics = await topics_list.to_list(length=None)
+        return {"status": "success", "message": "Topics fetched successfully", "topics": topics}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch topics: {str(e)}")
 
 # Include the router in the app
 app.include_router(api_router)

@@ -9,15 +9,42 @@ export interface RoadMapFormData {
   kinesthetic?: boolean;
 }
 
-interface Roadmap {
-  topic: string;
-  schedule: {
-    frequencyPattern: string[];
-    sessionDuration: string;
-  };
-}
+// interface Roadmap {
+//   topic: string;
+//   schedule: {
+//     frequencyPattern: string[];
+//     sessionDuration: string;
+//   };
+// }
 
-interface Resource {
+// interface Resource {
+//   title: string;
+//   type: string;
+//   url: string;
+//   cost: string;
+//   duration: string;
+//   learning_style: string[];
+// }
+
+// interface Day {
+//   day: string;
+//   date: string;
+//   topics: string[];
+//   resources: Resource[];
+// }
+
+// interface Week {
+//   week_number: number;
+//   focus_area: string;
+//   days: Day[];
+// }
+
+// export interface Roadmapdata {
+//   roadmap: Roadmap;
+//   weeks: Week[];
+// }
+
+export interface Resource {
   title: string;
   type: string;
   url: string;
@@ -26,20 +53,20 @@ interface Resource {
   learning_style: string[];
 }
 
-interface Day {
-  day: string;
-  date: string;
-  topics: string[];
+export interface Topic {
+  title: string;
+  milestone: string;
+  prerequisite_topic: string;
+  optional: string;
   resources: Resource[];
 }
 
-interface Week {
-  week_number: number;
-  focus_area: string;
-  days: Day[];
+export interface Roadmap {
+  topic: string;
+  topics: Topic[];
 }
 
-export interface Roadmapdata {
-  roadmap: Roadmap;
-  weeks: Week[];
+export interface ResourceData {
+  topic: string;
+  resources: Resource[];
 }

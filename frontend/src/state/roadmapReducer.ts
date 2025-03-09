@@ -1,20 +1,21 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Roadmapdata } from '../interfaces/form';
+import { Roadmap, ResourceData } from '../interfaces/form';
 
 interface RoadmapState {
-  roadmaps: Roadmapdata;
+  roadmap: Roadmap;
+  topics: string[];
+  resources: ResourceData;
 }
 
 const initialState: RoadmapState = {
-  roadmaps: {
-    roadmap: {
-      topic: '',
-      schedule: {
-        frequencyPattern: [],
-        sessionDuration: '',
-      },
-    },
-    weeks: [],
+  roadmap: {
+    topic: '',
+    topics: [],
+  },
+  topics: [],
+  resources: {
+    topic: '',
+    resources: [],
   },
 };
 
@@ -22,11 +23,18 @@ const roadmapSlice = createSlice({
   name: 'roadmap',
   initialState,
   reducers: {
-    createRoadmap(state, action: PayloadAction<Roadmapdata>) {
-      state.roadmaps = action.payload;
+    createRoadmap(state, action: PayloadAction<Roadmap>) {
+      state.roadmap = action.payload;
+    },
+    setTopics(state, action: PayloadAction<string[]>) {
+      state.topics = action.payload;
+    },
+    createResources(state, action: PayloadAction<ResourceData>) {
+      state.resources = action.payload;
     },
   },
 });
 
-export const { createRoadmap } = roadmapSlice.actions;
+export const { createRoadmap, setTopics, createResources } =
+  roadmapSlice.actions;
 export default roadmapSlice.reducer;

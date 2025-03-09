@@ -3,15 +3,20 @@ import { RootState } from '../state/store';
 // import CreateRoadMapForm from './createRoadMapForm';
 import RoadmapViewer from './components/timeline';
 import CreateRoadMapForm from './createRoadMapForm';
+import ResourcesViewer from './components/resourcesViewer';
 
 const MainDisplay = () => {
-  const roadmaps = useSelector((state: RootState) => state.roadmap.roadmaps);
-  console.log(roadmaps, 'roadmaps from redux');
+  const roadmap = useSelector((state: RootState) => state.roadmap.roadmap);
+  const resources = useSelector((state: RootState) => state.roadmap.resources);
+
   return (
     <>
-      {roadmaps.roadmap.topic ? (
-        <RoadmapViewer />
-      ) : (
+      {roadmap?.topics?.length > 0 && <RoadmapViewer roadmap={roadmap} />}
+      {resources?.resources?.length > 0 && (
+        <ResourcesViewer resources={resources} />
+      )}
+
+      {!resources.resources.length && !roadmap.topics.length && (
         <div className='flex-grow overflow-y-auto justify-center flex flex-col'>
           <CreateRoadMapForm />
         </div>
