@@ -12,8 +12,10 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.6.0",
     "@tailwindcss/vite": "^4.0.9",
+    "@types/node": "^22.13.10",
     "axios": "^1.8.1",
     "framer-motion": "^12.4.7",
+    "next-auth": "^4.24.11",
     "prop-types": "^15.8.1",
     "react": "^19.0.0",
     "react-chrono": "^2.6.1",

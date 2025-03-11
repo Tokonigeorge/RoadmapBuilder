@@ -12,11 +12,11 @@ const MainDisplay = () => {
   return (
     <>
       {roadmap?.topics?.length > 0 && <RoadmapViewer roadmap={roadmap} />}
-      {resources?.resources?.length > 0 && (
+      {resources?.resources?.length < 1 && (
         <ResourcesViewer resources={resources} />
       )}
 
-      {!resources.resources.length && !roadmap.topics.length && (
+      {resources.resources.length && !roadmap.topics.length && (
         <div className='flex-grow overflow-y-auto justify-center flex flex-col'>
           <CreateRoadMapForm />
         </div>
