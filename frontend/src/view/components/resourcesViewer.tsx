@@ -1,7 +1,6 @@
 import { ResourceData } from '../../interfaces/form';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
 
 const ResourcesViewer = ({ resources }: { resources: ResourceData }) => {
   const [isPopupVisible, setIsPopupVisible] = useState<boolean>(false);
@@ -70,25 +69,16 @@ const ResourcesViewer = ({ resources }: { resources: ResourceData }) => {
 
             <div className='flex flex-col items-start mb-4'>
               <h2 className='text-lg font-bold'>Have an account? </h2>
-              <button
-                className='bg-primary text-black px-4 py-2 rounded-md cursor-pointer'
-                onClick={() => signIn()}
-              >
+              <button className='bg-primary text-black px-4 py-2 rounded-md cursor-pointer'>
                 Sign In
               </button>
-              <button
-                onClick={() => signIn('google')}
-                className='bg-primary text-black px-4 py-2 rounded-md cursor-pointer'
-              >
+              <button className='bg-primary text-black px-4 py-2 rounded-md cursor-pointer'>
                 Sign In with Google
               </button>
             </div>
             <div className='flex flex-col items-start'>
               <h2 className='text-lg font-bold'>Don't have an account? </h2>
-              <button
-                className='bg-primary text-black px-4 py-2 rounded-md cursor-pointer'
-                onClick={() => signIn()}
-              >
+              <button className='bg-primary text-black px-4 py-2 rounded-md cursor-pointer'>
                 Sign Up
               </button>
             </div>

@@ -57,15 +57,6 @@ const RoadmapViewer = ({ roadmap }: { roadmap: Roadmap }) => {
             </motion.div>
           ))}
         </motion.div>
-        {/* {
-          roadmapData.weeks.map((week, index: number) => (
-            <div key={index}>
-              <h1>{week.title}</h1>
-              <p></p>
-              <p>{week.description}</p>
-            </div>
-          ))
-        } */}
       </div>
     </div>
   );
