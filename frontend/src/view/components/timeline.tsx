@@ -1,10 +1,66 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // components/RoadmapViewer.tsx
 
 import { motion } from 'framer-motion';
-import { Roadmap } from '../../interfaces/form';
+// import { useSelector } from 'react-redux';
+// import { RootState } from '../../state/store';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { useEffect, useState } from 'react';
 
-const RoadmapViewer = ({ roadmap }: { roadmap: Roadmap }) => {
-  console.log(roadmap, 'roadmapData', roadmap.topics, 'topics');
+interface RoadmapData {
+  _id: string;
+  content: any;
+  metadata: any;
+  created_at: string;
+  type: 'roadmap';
+}
+
+const RoadmapViewer = () => {
+  const { id } = useParams<{ id: string }>();
+  const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  // const roadmap = useSelector((state: RootState) => state.roadmap.roadmap);
+  console.log(roadmap, 'roadmapData');
+
+  useEffect(() => {
+    const fetchRoadmap = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`/api/roadmap/${id}`);
+        setRoadmap(response.data.roadmap);
+      } catch (err) {
+        console.error('Failed to fetch roadmap:', err);
+        setError('Failed to load roadmap. Please try again later.');
+        toast.error('Failed to load roadmap');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchRoadmap();
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className='flex justify-center items-center h-screen'>
+        Loading roadmap...
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className='text-red-500 text-center p-4'>{error}</div>;
+  }
+
+  if (!roadmap) {
+    return <div className='text-center p-4'>Roadmap not found</div>;
+  }
+
   return (
     <div className='max-w-7xl p-6 font-serif'>
       <div className='flex flex-col'>

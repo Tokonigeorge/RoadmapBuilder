@@ -1,13 +1,59 @@
-import { ResourceData } from '../../interfaces/form';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { ResourceData } from '../../interfaces/form';
 
-const ResourcesViewer = ({ resources }: { resources: ResourceData }) => {
+const ResourcesViewer = () => {
+  const { id } = useParams<{ id: string }>();
+  console.log('here', id);
   const [isPopupVisible, setIsPopupVisible] = useState<boolean>(false);
+
+  const [resources, setResources] = useState<ResourceData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   const togglePopup = () => {
     setIsPopupVisible(!isPopupVisible);
   };
+
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`/api/resources/${id}`);
+        setResources(response.data.resources);
+      } catch (err) {
+        console.error('Failed to fetch resources:', err);
+        setError('Failed to load resources. Please try again later.');
+        toast.error('Failed to load resources');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchResources();
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className='flex justify-center items-center h-screen'>
+        Loading resources...
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className='text-red-500 text-center p-4'>{error}</div>;
+  }
+
+  if (!resources) {
+    return <div className='text-center p-4'>Resources not found</div>;
+  }
 
   return (
     <div className='max-w-7xl p-6 font-serif'>

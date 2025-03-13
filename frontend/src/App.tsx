@@ -7,6 +7,8 @@ import Login from './view/pages/login';
 import Register from './view/pages/register';
 import ResetPassword from './view/pages/resetPassword';
 import ProtectedRoute from './ProtectedRoutes';
+import RoadmapViewer from './view/components/timeline';
+import ResourcesViewer from './view/components/resourcesViewer';
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
               <Route path='/login' element={<Login />} />
               <Route path='/register' element={<Register />} />
               <Route path='/reset-password' element={<ResetPassword />} />
+              <Route path='/roadmap/:id' element={<RoadmapViewer />} />
+              <Route path='/resources/:id' element={<ResourcesViewer />} />
 
               {/* Protected routes */}
               <Route element={<ProtectedRoute children={undefined} />}>

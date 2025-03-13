@@ -13,6 +13,7 @@ import {
   createResources,
   createRoadmap,
 } from '../state/roadmapReducer';
+import { useNavigate } from 'react-router-dom';
 import { RootState } from '../state/store';
 import { useSelector } from 'react-redux';
 
@@ -21,6 +22,7 @@ const RoadMapForm = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const topics = useSelector((state: RootState) => state.roadmap.topics);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTopics = async () => {
@@ -119,13 +121,17 @@ const RoadMapForm = () => {
         await axios.post('/api/topic', data);
       }
       const response = await axios.post('/api/roadmap', data);
-      console.log(response.data, 'response');
+
       const response_data = response.data;
       const parsedResponse = JSON.parse(response_data.roadmap);
+      console.log(parsedResponse, 'response');
+
       if (response_data.response_type === 'roadmap') {
         dispatch(createRoadmap(parsedResponse as Roadmap));
+        navigate(`/roadmap/${response_data._id}`);
       } else if (response_data.response_type === 'resources') {
         dispatch(createResources(parsedResponse as ResourceData));
+        navigate(`/resources/${response_data._id}`);
       }
     } catch (error) {
       console.error('Submission failed:', error);

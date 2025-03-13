@@ -1,3 +1,6 @@
+from datetime import datetime
+import json
+from bson import ObjectId
 from app.road_map_generator import generate_roadmap, generate_resources
 from app.models import RoadmapFormData
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -41,6 +44,8 @@ DB_NAME = "roadmap_db"
 client = AsyncIOMotorClient(MONGO_URI)
 db = client[DB_NAME]
 topics_collection = db["topics"]
+roadmaps_collection = db["roadmaps"]
+resources_collection = db["resources"]
 
 
 # Define the root endpoint
@@ -57,15 +62,87 @@ async def create_roadmap(data: RoadmapFormData):
     try:
         if not data.timeFrame:
             response_type = "resources"
-            roadmap = generate_resources(data)
+            resources_data = generate_resources(data)
+            parsed_resources = json.loads(resources_data)
+
+            #save to mongodb
+            document = {
+                "topic": parsed_resources.get("topic", ""),
+                "resources": parsed_resources.get("resources", []),
+                "metadata": data.dict(),
+                "created_at":datetime.now(),
+                "type":"resources"
+            }
+
+            result = await resources_collection.insert_one(document)
+            doc_id = str(result.inserted_id)
+
+            return {
+                "status":"success",
+                "message":"Resources created successfully",
+                "roadmap": resources_data,
+                "response_type": response_type,
+                "_id":doc_id
+            }
             
         else:
             response_type = "roadmap"
-            roadmap = generate_roadmap(data)
+            roadmap_data = generate_roadmap(data)
+            parsed_roadmap = json.loads(roadmap_data)
 
-        return {"status": "success", "message": "Roadmap created successfully", "roadmap": roadmap, "response_type": response_type}
+            document = {
+                "topic": parsed_roadmap.get("topic", ""),
+                "topics": parsed_roadmap.get("topics", []),
+                "metadata":data.dict(),
+                "created_at":datetime.now(),
+                "type":"roadmap"
+            }
+
+            result = await roadmaps_collection.insert_one(document)
+            doc_id = str(result.inserted_id)
+
+            return {
+                "status": "success",
+                "message":"Roadmap created successfully",
+                "roadmap":roadmap_data,
+                "response_type":response_type,
+                "_id": doc_id
+            }
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
+    
+
+@api_router.get("/roadmap/{roadmap_id}", summary="Get roadmap by ID", response_description="Roadmap details")
+async def get_roadmap(roadmap_id: str):
+    try:
+        
+        roadmap =await roadmaps_collection.find_one({"_id": ObjectId(roadmap_id)})
+
+        if not roadmap:
+            raise HTTPException(status_code=404, detail=f"Roadmap with ID {roadmap_id} not found")
+        
+        #convert ObjectId to string for json serialization
+        roadmap["_id"] = str(roadmap["_id"])
+        return {"status":"success", "roadmap":roadmap}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch roadmap: {str(e)}")
+    
+
+@api_router.get("/resources/{resource_id}", summary="Get resources by ID", response_description="Resources details")
+async def get_resources(resource_id: str):
+    try:
+        
+        resources =await resources_collection.find_one({"_id": ObjectId(resource_id)})
+
+        if not resources:
+            raise HTTPException(status_code=404, detail=f"Roadmap with ID {resource_id} not found")
+        
+        #convert ObjectId to string for json serialization
+        resources["_id"] = str(resources["_id"])
+        return {"status":"success", "resources":resources}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch resources: {str(e)}")
     
 
 @api_router.post("/topic", summary="Add a new topic", response_description="Topic added successfully")
