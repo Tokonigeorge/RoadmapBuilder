@@ -1,16 +1,22 @@
+from .road_map_generator import generate_roadmap, generate_resources
+from typing import Dict, Any
+
+
 from datetime import datetime
 import json
 from bson import ObjectId
-from app.road_map_generator import generate_roadmap, generate_resources
-from app.models import RoadmapFormData
+
+from .models.roadmap import RoadmapFormData
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Body, status
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
 from dotenv import load_dotenv
 import os
+
+from .utils import UserModel
 
 
 load_dotenv()
@@ -46,6 +52,7 @@ db = client[DB_NAME]
 topics_collection = db["topics"]
 roadmaps_collection = db["roadmaps"]
 resources_collection = db["resources"]
+users_collection = db["users"]
 
 
 # Define the root endpoint
@@ -144,6 +151,176 @@ async def get_resources(resource_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch resources: {str(e)}")
     
+
+@api_router.post("/user", summary="Save user", response_description="User saved successfully")
+async def save_user(user_data: Dict[str, Any] = Body(...)):
+    email = user_data.get("email")
+    uid = user_data.get("uid")
+    display_name = user_data.get("display_name")
+    photo_url = user_data.get("photo_url")
+    saved_resources = user_data.get("saved_resources", [])
+    
+    if not email or not uid:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email and uid are required")
+    
+    #check if user already exists
+    existing_user = await users_collection.find_one({"uid": uid})
+    if existing_user:
+        update_result = await users_collection.update_one(
+            {"uid": uid},
+            {"$set": {
+                "email": email,
+                "display_name": display_name,
+                "photo_url": photo_url,
+                "saved_resources": saved_resources
+            }})
+        
+        if update_result.modified_count == 1:
+            return {"status": "success", "message": "User updated successfully"}
+        else:
+            user = UserModel(email=email, uid=uid, display_name=display_name, photo_url=photo_url, saved_resources=saved_resources)
+            new_user = await users_collection.insert_one(user.dict(by_alias=True))
+            if new_user.inserted_id:
+                return {"success": True, "message": "New user created"}
+            
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to save user information")
+
+
+@api_router.post("/save-resources", summary="Save resources", response_description="Resources saved successfully")
+async def save_resources(resource_data: Dict[str, Any] = Body(...)):
+
+    uid = resource_data.get("uid")
+    resource_id = resource_data.get("resource_id")
+
+    if not uid or not resource_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="UID and resource ID are required")
+    
+    #convert resource_id to ObjectId
+    resource_id = ObjectId(resource_id)
+
+    #find the user
+    user = await users_collection.find_one({"uid": uid})
+    if not user:
+        new_user = {
+            "uid": uid,
+            "email": "",  
+            "display_name": "", 
+            "photo_url": "", 
+            "saved_resources": []
+        }
+        await users_collection.insert_one(new_user)
+        user = new_user
+    
+    #check if resource is already saved
+    saved_resources = user.get("saved_resources", [])
+    saved_resources_ids = [str(resource) for resource in saved_resources]
+
+    if str(resource_id) not in saved_resources_ids:
+        update_result = await users_collection.update_one(
+            {"uid": uid},
+            {"$addToSet": {"saved_resources": resource_id}}
+        )
+
+        if update_result.modified_count != 1:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to save resource")
+    
+    
+    updated_user = await users_collection.find_one({"uid": uid})
+    return {"status": "success", "message": "Resource saved successfully", "saved_resources": [str(res) for res in updated_user.get("saved_resources", [])]}
+
+
+@api_router.delete("/save-resources", summary="Delete saved resource", response_description="Resource deleted successfully")
+async def delete_saved_resource(resource_data: Dict[str, Any] = Body(...)):
+    uid = resource_data.get("uid")
+    resource_id = resource_data.get("resource_id")
+
+    if not uid or not resource_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="UID and resource ID are required")
+    
+    
+
+    #find the user
+    user = await users_collection.find_one({"uid": uid})
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    
+    try:
+        resource_id_obj = ObjectId(resource_id)
+    except:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid resource ID format")
+    # Remove the resource from saved_resources
+    update_result = await users_collection.update_one(
+        {"uid": uid},
+        {"$pull": {"saved_resources": resource_id_obj}}
+    )
+    
+    if update_result.modified_count != 1:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found in saved resources")
+    
+    updated_user = await users_collection.find_one({"uid": uid})
+    return {
+        "status": "success", 
+        "message": "Resource removed successfully", 
+        "saved_resources": [str(res) for res in updated_user.get("saved_resources", [])]
+    }
+    
+@api_router.get("/check-saved-resource", summary="Check if resource is saved", response_description="Resource saved status")
+async def check_saved_resource(uid: str, resource_id: str):
+    if not uid or not resource_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="UID and resource ID are required")
+    
+    # Find the user
+    user = await users_collection.find_one({"uid": uid})
+    if not user:
+        return {"isSaved": False}
+    
+    # Convert resource_id to ObjectId
+    try:
+        resource_id_obj = ObjectId(resource_id)
+    except:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid resource ID format")
+    
+    # Check if resource is in saved_resources
+    saved_resources = user.get("saved_resources", [])
+    is_saved = resource_id_obj in saved_resources
+    
+    return {"isSaved": is_saved}   
+    
+    
+    
+@api_router.get("/saved-resources/{uid}", response_description="Get user's saved resources")
+async def get_saved_resources(uid: str):
+    if not uid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="User ID is required"
+        )
+    
+    # Find the user
+    user = await users_collection.find_one({"uid": uid})
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="User not found"
+        )
+    
+    # Get the saved resources
+
+    saved_resource_ids = user.get("saved_resources", [])
+    resources = []
+    
+    async for resource in resources_collection.find({"_id": {"$in": saved_resource_ids}}):
+        resources.append({
+            "_id": str(resource["_id"]),
+            "title": resource.get("title", ""),
+            "url": resource.get("url", ""),
+            "topic": resource.get("topic", "")
+        })
+    
+    return {"success": True, "resources": resources}   
+        
+        
 
 @api_router.post("/topic", summary="Add a new topic", response_description="Topic added successfully")
 async def add_topic(topic_data: RoadmapFormData):

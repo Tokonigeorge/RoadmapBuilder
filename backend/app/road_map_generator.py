@@ -1,4 +1,4 @@
-from .models import RoadmapFormData
+from .models.roadmap import RoadmapFormData
 import os
 import openai
 from dotenv import load_dotenv

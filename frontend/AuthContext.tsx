@@ -17,6 +17,7 @@ import {
   UserCredential,
 } from 'firebase/auth';
 import { auth } from './firebase.config';
+import axios from 'axios';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -64,6 +65,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const saveUserToDatabase = async (user: any) => {
+    try {
+      await axios.post('/api/user', {
+        email: user.email,
+        uid: user.uid,
+        displayName: user.displayName || '',
+        photoURL: user.photoURL || '',
+      });
+    } catch (error) {
+      console.error('Error saving user to database:', error);
+      throw error;
+    }
+  };
   // Email & Password sign up
   async function signUp(email: string, password: string): Promise<User> {
     try {
@@ -72,6 +86,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         email,
         password
       );
+      await saveUserToDatabase(result.user);
       return result.user;
     } catch (error) {
       console.error('Error signing up:', error);
@@ -83,6 +98,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   async function logIn(email: string, password: string): Promise<User> {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
+      await saveUserToDatabase(result.user);
       return result.user;
     } catch (error) {
       console.error('Error logging in:', error);
@@ -94,7 +110,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const provider = new GoogleAuthProvider();
       // Use signInWithPopup instead of signInWithRedirect
-      return await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      await saveUserToDatabase(result.user);
+      return result.user;
     } catch (error) {
       console.error('Error signing in with Google:', error);
       throw error;
