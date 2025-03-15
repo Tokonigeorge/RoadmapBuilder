@@ -320,7 +320,106 @@ async def get_saved_resources(uid: str):
     
     return {"success": True, "resources": resources}   
         
-        
+@api_router.post("/save-roadmap", summary="Save roadmap", response_description="Roadmap saved successfully")
+async def save_roadmap(roadmap_data: Dict[str, Any] = Body(...)):
+    uid = roadmap_data.get("uid")
+    roadmap_id = roadmap_data.get("roadmap_id")
+
+    if not uid or not roadmap_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="UID and roadmap ID are required")
+    
+    # Convert roadmap_id to ObjectId
+    roadmap_id = ObjectId(roadmap_id)
+
+    # Find the user
+    user = await users_collection.find_one({"uid": uid})
+    if not user:
+        new_user = {
+            "uid": uid,
+            "email": "",  
+            "display_name": "", 
+            "photo_url": "", 
+            "saved_resources": [],
+            "saved_roadmaps": []
+        }
+        await users_collection.insert_one(new_user)
+        user = new_user
+    
+    # Check if roadmap is already saved
+    saved_roadmaps = user.get("saved_roadmaps", [])
+    saved_roadmaps_ids = [str(roadmap) for roadmap in saved_roadmaps]
+
+    if str(roadmap_id) not in saved_roadmaps_ids:
+        update_result = await users_collection.update_one(
+            {"uid": uid},
+            {"$addToSet": {"saved_roadmaps": roadmap_id}}
+        )
+
+        if update_result.modified_count != 1:  
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to save roadmap")
+    
+    updated_user = await users_collection.find_one({"uid": uid})
+    return {
+        "status": "success", 
+        "message": "Roadmap saved successfully", 
+        "saved_roadmaps": [str(rm) for rm in updated_user.get("saved_roadmaps", [])]
+    }
+
+@api_router.delete("/save-roadmap", summary="Delete saved roadmap", response_description="Roadmap deleted successfully")
+async def delete_saved_roadmap(roadmap_data: Dict[str, Any] = Body(...)):
+    uid = roadmap_data.get("uid")
+    roadmap_id = roadmap_data.get("roadmap_id")
+
+    if not uid or not roadmap_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="UID and roadmap ID are required")
+    
+    # Find the user
+    user = await users_collection.find_one({"uid": uid})
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    
+    try:
+        roadmap_id_obj = ObjectId(roadmap_id)
+    except:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid roadmap ID format")
+    
+    # Remove the roadmap from saved_roadmaps
+    update_result = await users_collection.update_one(
+        {"uid": uid},
+        {"$pull": {"saved_roadmaps": roadmap_id_obj}}
+    )
+    
+    if update_result.modified_count != 1:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Roadmap not found in saved roadmaps")
+    
+    updated_user = await users_collection.find_one({"uid": uid})
+    return {
+        "status": "success", 
+        "message": "Roadmap removed successfully", 
+        "saved_roadmaps": [str(rm) for rm in updated_user.get("saved_roadmaps", [])]
+    }
+
+@api_router.get("/check-saved-roadmap", summary="Check if roadmap is saved", response_description="Roadmap saved status")
+async def check_saved_roadmap(uid: str, roadmap_id: str):
+    if not uid or not roadmap_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="UID and roadmap ID are required")
+    
+    # Find the user
+    user = await users_collection.find_one({"uid": uid})
+    if not user:
+        return {"isSaved": False}
+    
+    # Convert roadmap_id to ObjectId
+    try:
+        roadmap_id_obj = ObjectId(roadmap_id)
+    except:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid roadmap ID format")
+    
+    # Check if roadmap is in saved_roadmaps
+    saved_roadmaps = user.get("saved_roadmaps", [])
+    is_saved = roadmap_id_obj in saved_roadmaps
+    
+    return {"isSaved": is_saved}
 
 @api_router.post("/topic", summary="Add a new topic", response_description="Topic added successfully")
 async def add_topic(topic_data: RoadmapFormData):

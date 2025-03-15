@@ -104,10 +104,11 @@ const RoadMapForm = () => {
     </AnimatedInputWrapper>,
   ];
 
-  const handleNextStep = async () => {
-    const fieldsToValidate = ['learningTopic'][currentStep];
+  const handleNextStep = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    const fieldsToValidate = ['learningTopic'];
 
-    const isValid = await trigger(fieldsToValidate);
+    const isValid = currentStep === 0 ? await trigger(fieldsToValidate) : true;
 
     if (isValid) {
       setCurrentStep((prev) => Math.min(prev + 1, formSteps.length - 1));

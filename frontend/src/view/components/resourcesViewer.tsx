@@ -3,16 +3,10 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import { ResourceData } from '../../interfaces/form';
 import { useAuth } from '../../../AuthContext';
-
-const normalizeTopicName = (topic: string): string => {
-  return topic
-    .split(' ')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
-};
+import { normalizeTopicName } from '../../utils/normalizeTopicName';
 
 const ResourcesViewer = () => {
   const { id } = useParams<{ id: string }>();
@@ -113,6 +107,9 @@ const ResourcesViewer = () => {
 
   return (
     <div className='max-w-7xl p-6 font-serif'>
+      <div className='text-center flex-none'>
+        <p className='font-serif  text-2xl'>Roadmap Builder</p>
+      </div>
       <div className='flex justify-between'>
         <div>
           <p className='text-4xl font-serif'>
@@ -197,6 +194,7 @@ const ResourcesViewer = () => {
           </div>
         </motion.div>
       </div>
+      <ToastContainer />
     </div>
   );
 };
