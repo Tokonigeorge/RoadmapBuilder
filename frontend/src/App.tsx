@@ -9,6 +9,7 @@ import ResetPassword from './view/pages/resetPassword';
 import ProtectedRoute from './ProtectedRoutes';
 import RoadmapViewer from './view/components/timeline';
 import ResourcesViewer from './view/components/resourcesViewer';
+import Dashboard from './view/pages/dashboard';
 
 function App() {
   return (
@@ -25,10 +26,14 @@ function App() {
               <Route path='/resources/:id' element={<ResourcesViewer />} />
 
               {/* Protected routes */}
-              <Route element={<ProtectedRoute children={undefined} />}>
-                {/* Add protected routes here */}
-                {/* For example: <Route path="/dashboard" element={<Dashboard />} /> */}
-              </Route>
+              <Route
+                path='/dashboard'
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </main>
         </Provider>

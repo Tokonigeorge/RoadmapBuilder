@@ -2,6 +2,8 @@ from .models.roadmap import RoadmapFormData
 import os
 import openai
 from dotenv import load_dotenv
+import json
+
 
 load_dotenv()
 
@@ -13,6 +15,9 @@ if not api_key:
     raise EnvironmentError("OPENAI_API_KEY environment variable not set")
 
 client = openai.OpenAI(api_key=api_key)
+
+
+
 
 def generate_roadmap(data: RoadmapFormData):
     """Generates a structured roadmap with topic breakdown and resources."""
@@ -27,7 +32,8 @@ def generate_roadmap(data: RoadmapFormData):
     4. Include both conceptual and practical resources
     5. This is a roadmap that should be comprehensive and cover all the topics in the learning topic. Identify all the topics that are related to the learning topic and add them to the roadmap.
     6. it should not just be a list of 5 topics. it should be a comprehensive roadmap that covers all the topics in the learning topic.
-    7. Add milestones to the roadmap. Start with 10% completion, 25% completion, 50% completion, 75% completion, and 100% completion.
+    7. Add milestones to the roadmap.
+    8. Add a timeline that is based on the time frame to the roadmap.
 
     **User Input:**
     - **Topic:** {data.learningTopic}

@@ -4,7 +4,7 @@
 import { motion } from 'framer-motion';
 // import { useSelector } from 'react-redux';
 // import { RootState } from '../../state/store';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import { useEffect, useState } from 'react';
@@ -145,6 +145,14 @@ const RoadmapViewer = () => {
           </p>
         </div>
         <div>
+          {currentUser && (
+            <Link
+              to='/dashboard'
+              className='bg-gray-200 hover:bg-gray-300 text-black px-4 py-2 rounded-md cursor-pointer transition-colors'
+            >
+              Go to Dashboard
+            </Link>
+          )}
           {currentUser ? (
             <button
               onClick={toggleSaveRoadmap}

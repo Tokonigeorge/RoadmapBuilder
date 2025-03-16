@@ -19,6 +19,7 @@ import os
 from .utils import UserModel
 
 
+
 load_dotenv()
 # Create the FastAPI app with configuration
 app = FastAPI(
@@ -319,6 +320,37 @@ async def get_saved_resources(uid: str):
         })
     
     return {"success": True, "resources": resources}   
+
+@api_router.get("/saved-roadmaps/{uid}", response_description="Get user's saved roadmaps")
+async def get_saved_roadmaps(uid: str):
+    if not uid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="User ID is required"
+        )
+    
+    # Find the user
+    user = await users_collection.find_one({"uid": uid})
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="User not found"
+        )
+    
+    # Get the saved roadmaps
+    saved_roadmap_ids = user.get("saved_roadmaps", [])
+    roadmaps = []
+    
+    async for roadmap in roadmaps_collection.find({"_id": {"$in": saved_roadmap_ids}}):
+        roadmaps.append({
+            "_id": str(roadmap["_id"]),
+            "title": roadmap.get("topic", ""),
+            "topic": roadmap.get("topic", ""),
+            "type": "roadmap"
+        })
+    
+    return {"success": True, "roadmaps": roadmaps}
         
 @api_router.post("/save-roadmap", summary="Save roadmap", response_description="Roadmap saved successfully")
 async def save_roadmap(roadmap_data: Dict[str, Any] = Body(...)):
@@ -436,6 +468,7 @@ async def get_topics():
         return {"status": "success", "message": "Topics fetched successfully", "topics": topics}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch topics: {str(e)}")
+
 
 # Include the router in the app
 app.include_router(api_router)

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import { ResourceData } from '../../interfaces/form';
@@ -120,6 +120,14 @@ const ResourcesViewer = () => {
           </p>
         </div>
         <div>
+          {currentUser && (
+            <Link
+              to='/dashboard'
+              className='bg-gray-200 hover:bg-gray-300 text-black px-4 py-2 rounded-md cursor-pointer transition-colors'
+            >
+              Go to Dashboard
+            </Link>
+          )}
           {currentUser ? (
             <button
               onClick={toggleSaveResource}
