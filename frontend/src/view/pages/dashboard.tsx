@@ -80,59 +80,63 @@ const SavedResources = () => {
 
   return (
     <div className='max-w-7xl mx-auto p-6 font-serif'>
+      <div className='text-center flex-none'>
+        <p className='font-serif  text-2xl'>Roadmap Builder</p>
+      </div>
       <h1 className='text-4xl font-serif mb-6'>My Learning Dashboard</h1>
-
-      {resources.length === 0 ? (
-        <div className='text-center p-4'>
-          You haven't saved any resources yet.
-        </div>
-      ) : (
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-          {resources.map((resource) => (
-            <div
-              key={resource._id}
-              className='bg-gray-100 p-4 rounded-md shadow'
-            >
-              <h3 className='font-bold mb-2'>{resource.title}</h3>
-              <p className='text-sm text-gray-600 mb-2'>
-                Topic: {resource.topic}
-              </p>
-              <a
-                href={resource.url}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='text-primary hover:underline'
+      <div className='flex flex-col gap-4'>
+        {resources.length === 0 ? (
+          <div className='text-center p-4'>
+            You haven't saved any resources yet.
+          </div>
+        ) : (
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+            {resources.map((resource) => (
+              <div
+                key={resource._id}
+                className='bg-white p-4 rounded-md shadow'
               >
-                Visit Resource
-              </a>
-            </div>
-          ))}
-        </div>
-      )}
-      {roadmaps.length === 0 ? (
-        <div className='text-center p-4'>
-          You haven't saved any roadmaps yet.
-        </div>
-      ) : (
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-          {roadmaps.map((roadmap) => (
-            <div key={roadmap._id} className='bg-white p-4 rounded-md shadow'>
-              <h3 className='font-bold mb-2'>{roadmap.title}</h3>
-              <p className='text-sm text-gray-600 mb-2'>
-                Topic: {roadmap.topic}
-              </p>
-              <a
-                href={roadmap.url}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='text-primary hover:underline'
-              >
-                Visit Roadmap
-              </a>
-            </div>
-          ))}
-        </div>
-      )}
+                <h3 className='font-bold mb-2'>{resource.title}</h3>
+                <p className='text-sm text-gray-600 mb-2'>
+                  Topic: {resource.topic}
+                </p>
+                <a
+                  href={`/resources/${resource._id}`}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-primary hover:underline'
+                >
+                  Visit Resource
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+        {roadmaps.length === 0 ? (
+          <div className='text-center p-4'>
+            You haven't saved any roadmaps yet.
+          </div>
+        ) : (
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+            {roadmaps.map((roadmap) => (
+              <div key={roadmap._id} className='bg-white p-4 rounded-md shadow'>
+                <h3 className='font-bold mb-2'>{roadmap.title}</h3>
+                <p className='text-sm text-gray-600 mb-2'>
+                  Topic: {roadmap.topic}
+                </p>
+                <a
+                  href={`/roadmap/${roadmap._id}`}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-primary hover:underline'
+                >
+                  Visit Roadmap
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
